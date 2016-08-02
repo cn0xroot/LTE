@@ -52,7 +52,6 @@ OWL is built on the srsLTE library by Software Radio Systems. Thus, if you are a
 
 Part 1 - Installation:
 ----------------------
-
 1. Install dependencies:
 ```
 sudo apt-get install build-essential git cmake libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-dev libqt4-dev libfftw3-dev
@@ -68,29 +67,39 @@ sudo apt-get update
 sudo apt-get install bladerf libbladerf-dev bladerf-firmware-fx3 bladerf-fpga-hostedx40 
 ```
 
-1.3 Install srsgui (this is not mandatory for OWL to work, but is a nice tool and it helps testing srsLTE and OWL):
-$ git clone https://github.com/suttonpd/srsgui.git
-$ cd srsgui
-$ mkdir build
-$ cd build
-$ cmake ../
-$ make
-$ sudo make install
+3. Install srsgui 
+This is not mandatory for OWL to work, but is a nice tool and it helps testing srsLTE and OWL:
 
-1.4 Install gnuradio (only VOLK is needed, but the VOLK standalone installation usually fails and installing gnuradio in this way is usually fast and error-free. If you have problem with this, just try to have VOLK installed https://github.com/gnuradio/volk):
-$ sudo apt-get install gnuradio
+```
+git clone https://github.com/suttonpd/srsgui.git
+cd srsgui
+mkdir build
+cd build
+cmake ../
+make
+sudo make install
+```
 
-1.5 Install OWL
-from inside the srsLTE folder do the following:
-$ mkdir build
-$ cd build
-$ cmake ../
-$ make
+4. Install gnuradio
+only VOLK is needed, but the VOLK standalone installation usually fails and installing gnuradio in this way is usually fast and error-free. If you have problem with this, just try to have VOLK installed https://github.com/gnuradio/volk):
+```
+sudo apt-get install gnuradio
+```
+
+5. Clone and install OWL
+```
+git clone git@git.networks.imdea.org:nicola_bui/imdeaowl.git
+mkdir build
+cd build
+cmake ../
+make
+```
 
 If everything succeeded you will find OWL's executables together with srsLTE's examples in the srsLTE/build/srslte/examples folder.
 
 Part 2 - Executable description:
-2.1 Inherited from srsLTE
+--------------------------------
+1. Inherited from srsLTE
 
 - cell_search
 Scan a given LTE band trying to acquire synchronization with the base station. Please, refer to this website for the used frequencies in your country 
@@ -102,14 +111,18 @@ http://niviuk.free.fr/lte_band.php
 emulate a UE trying to connecting to a given frequency, first looking for synchronization and, then, decoding control messages related to broadcast transmissions.
 In addition, this program provide some useful statistics about synchronization and decoding success rate.
 TIP: once you have the frequency of a base station you can run
-$ ./pdsch_ue -f <freq>
+```
+./pdsch_ue -f <freq>
+```
 where <freq> is the base station central frequency in hertz, i.e. 1.8 GHz can be given as 1800e6 or 1.8e9. If the synchronization is successfull, pdsch_ue will plot the constellations of the control channel and the shared downlink channel (only broadcast messages). If the signal is clean, you should be able to see a QPSK constellation in both diagrams. In addition, the amplitude and phase channel responses are plotted together with the PSS synchronization. The last one is ok if it looks like a gaussian.
 
-2.2 OWL files
+2. OWL files
 - imdea_capture_sync
 This program capture a raw trace of the LTE channel synchronized on the beginning of the first subframe 0 detected. A very useful reference is http://www.sharetechnote.com/html/FrameStructure_DL.html
 Usage: 
-$ ./imdea_capture_sync -f <freq> -l <cell_num> -n <subframe_num> -o <output_filename>
+```
+./imdea_capture_sync -f <freq> -l <cell_num> -n <subframe_num> -o <output_filename>
+```
 <freq> is the base station central frequency in hertz, i.e. 1.8 GHz can be given as 1800e6 or 1.8e9.
 <cell_num> is in {0,1,2} and can be obtained from cell_search or pdsch_ue (see for reference http://www.sharetechnote.com/html/Handbook_LTE_PCI.html)
 <subframe_num> is the number of subframes to be recorded in the trace. 1 subframe = 1 millisecond
@@ -122,26 +135,28 @@ sync loss (bad)
 - imdea_cc_decoder
 This program is the main part of OWL, where the control channel is decoded. It works both online and offline and pre-recorded traces.
 Online usage:
-$ ./imdea_cc_decoder -f <freq> -n <subframe_num> 1> <cc_out_filename> 2> /dev/null
+```
+./imdea_cc_decoder -f <freq> -n <subframe_num> 1> <cc_out_filename> 2> /dev/null
+```
 <cc_out_filename> specifies where to save the decoded control channel messages. If omitted, the messages are printed to the stdout. Don't forget to redirect the stderr (2> /dev/null), which is used to produce the list of location to be checked by the fine-tuner.
 The output of the decoder is a tab separated list where each line represents a decoded message. The columns are as follows:
-1.	SFN: internal timing of LTE (1 every frame = 10 ms)
-2.	subframe index from 0 to 9 (1 subframe = 1 ms)
-3.	RNTI in decimal
-4.	Direction: 1 = downlink; 0 = uplink
-5.	MCS in 0 - 31
-6.	number of allocated resource blocks in 0 - 110
-7.	transport block size in bits
-8.	transport block size in bits (code word 0), -1 if n/a
-9.	transport block size in bits (code word 1), -1 if n/a
-10.	DCI message type. This version only scans for 0 (format 0), 2 (format 1a), 6 (format 2a)
-11.	new data indicator toggle for codeword 0
-12.	new data indicator toggle for codeword 1
-13.	HARQ process id
-14.	ncce location of the DCI message
-15.	aggregation level of the DCI message
-16.	CFI
-17.	DCI correctness check 
+ 1.	SFN: internal timing of LTE (1 every frame = 10 ms)
+ 2.	subframe index from 0 to 9 (1 subframe = 1 ms)
+ 3.	RNTI in decimal
+ 4.	Direction: 1 = downlink; 0 = uplink
+ 5.	MCS in 0 - 31
+ 6.	number of allocated resource blocks in 0 - 110
+ 7.	transport block size in bits
+ 8.	transport block size in bits (code word 0), -1 if n/a
+ 9.	transport block size in bits (code word 1), -1 if n/a
+ 10.	DCI message type. This version only scans for 0 (format 0), 2 (format 1a), 6 (format 2a)
+ 11.	new data indicator toggle for codeword 0
+ 12.	new data indicator toggle for codeword 1
+ 13.	HARQ process id
+ 14.	ncce location of the DCI message
+ 15.	aggregation level of the DCI message
+ 16.	CFI
+ 17.	DCI correctness check 
 
 Offline usage:
 $ ./imdea_cc_decoder -i <input_trace_filename> -l <cell_num> -c <pci> -P <ports> -p <prb> -z <rnti_out_filename> -Z <rnti_in_filename> 1> <cc_out_filename> 2> <cc_fix_filename>
