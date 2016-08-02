@@ -120,7 +120,7 @@ TIP: once you have the frequency of a base station you can run
 ```sh
 $ ./pdsch_ue -f <freq>
 ```
-where <freq> is the base station central frequency in hertz, i.e. 1.8 GHz can be given as 1800e6 or 1.8e9. If the synchronization is successfull, pdsch_ue will plot the constellations of the control channel and the shared downlink channel (only broadcast messages). If the signal is clean, you should be able to see a QPSK constellation in both diagrams. In addition, the amplitude and phase channel responses are plotted together with the PSS synchronization. The last one is ok if it looks like a gaussian.
+where \<freq\> is the base station central frequency in hertz, i.e. 1.8 GHz can be given as 1800e6 or 1.8e9. If the synchronization is successfull, pdsch_ue will plot the constellations of the control channel and the shared downlink channel (only broadcast messages). If the signal is clean, you should be able to see a QPSK constellation in both diagrams. In addition, the amplitude and phase channel responses are plotted together with the PSS synchronization. The last one is ok if it looks like a gaussian.
 
 **OWL files**
 
@@ -131,10 +131,10 @@ Usage:
 ```sh
 $ ./imdea_capture_sync -f <freq> -l <cell_num> -n <subframe_num> -o <output_filename>
 ```
-<freq> is the base station central frequency in hertz, i.e. 1.8 GHz can be given as 1800e6 or 1.8e9.
-<cell_num> is in {0,1,2} and can be obtained from cell_search or pdsch_ue (see for reference http://www.sharetechnote.com/html/Handbook_LTE_PCI.html)
-<subframe_num> is the number of subframes to be recorded in the trace. 1 subframe = 1 millisecond
-<output_filename> where to record the trace. The trace can be then used with the other programs for offline processing. 
+\<freq\> is the base station central frequency in hertz, i.e. 1.8 GHz can be given as 1800e6 or 1.8e9.
+\<cell_num\> is in {0,1,2} and can be obtained from cell_search or pdsch_ue (see for reference http://www.sharetechnote.com/html/Handbook_LTE_PCI.html)
+\<subframe_num\> is the number of subframes to be recorded in the trace. 1 subframe = 1 millisecond
+\<output_filename\> where to record the trace. The trace can be then used with the other programs for offline processing. 
 TIP: putting -o /dev/null creates no output, but allows to test the signal synchronization without risking any buffer overrun (pc not ready when the sdr sends the streams). The output of the program is one line per frame (10 ms) and can be:
 Decoded MIB ... (good)
 MIB not decoded ... (noise on the channel)
@@ -148,7 +148,7 @@ Online usage:
 ```sh
 $ ./imdea_cc_decoder -f <freq> -n <subframe_num> 1> <cc_out_filename> 2> /dev/null
 ```
-<cc_out_filename> specifies where to save the decoded control channel messages. If omitted, the messages are printed to the stdout. Don't forget to redirect the stderr (2> /dev/null), which is used to produce the list of location to be checked by the fine-tuner.
+\<cc_out_filename\> specifies where to save the decoded control channel messages. If omitted, the messages are printed to the stdout. Don't forget to redirect the stderr (2> /dev/null), which is used to produce the list of location to be checked by the fine-tuner.
 The output of the decoder is a tab separated list where each line represents a decoded message. The columns are as follows:
   1.	SFN: internal timing of LTE (1 every frame = 10 ms)
   2.	subframe index from 0 to 9 (1 subframe = 1 ms)
@@ -172,10 +172,10 @@ Offline usage:
 ```sh
 $ ./imdea_cc_decoder -i <input_trace_filename> -l <cell_num> -c <pci> -P <ports> -p <prb> -z <rnti_out_filename> -Z <rnti_in_filename> 1> <cc_out_filename> 2> <cc_fix_filename>
 ```
-<input_trace_filename> a trace that you saved with imdea_capture_sync
-<pci> <ports> <prb> physical cell id, antenna ports and number of physical resourrce blocks of the LTE channel. All of these can be obtained using cell_search, pdsch_ue, imdea_capture_sync
-<rnti_in_filename> <rnti_out_filename> are the rnti lists. They are optional; if not provided the tool generates a new list. If available it starts with the information given. The format is a vector of 65355 elements, which can be 0 (not used), 1 (used, but not used in the last 10 seconds), 2 (used in the last 10 seconds).
-<cc_fix_filename> output file for the fine_tuner program. It specify one location to be checked per line. The columns are as follows:
+\<input_trace_filename\> a trace that you saved with imdea_capture_sync
+\<pci\> \<ports\> \<prb\> physical cell id, antenna ports and number of physical resourrce blocks of the LTE channel. All of these can be obtained using cell_search, pdsch_ue, imdea_capture_sync
+\<rnti_in_filename\> \<rnti_out_filename\> are the rnti lists. They are optional; if not provided the tool generates a new list. If available it starts with the information given. The format is a vector of 65355 elements, which can be 0 (not used), 1 (used, but not used in the last 10 seconds), 2 (used in the last 10 seconds).
+\<cc_fix_filename\> output file for the fine_tuner program. It specify one location to be checked per line. The columns are as follows:
   1. SFN
   2. subframe
   3. ncce
@@ -203,7 +203,7 @@ Part 3 - OWL setup and first use
 - Try to get a map of the base station location and put your sniffer in a location where a line of sight with the antenna is available
 - Use pdsch_ue and imdea_capture_sync to assess the signal quality
 - Once you have a good signal, you should have pdsch_ue showing very clean QPSK constellations and imdea_capture_sync showing almost only "Decoded MIB ..." output.
-- At this point you should have <freq> <cell_num> <pci> <ports> <prb>
+- At this point you should have \<freq\> \<cell_num\> \<pci\> \<ports\> \<prb\>
 - Try first the online decoder with the output on screen:
 
 ```sh
