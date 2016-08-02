@@ -55,8 +55,11 @@ Part 1 - Installation:
 1. Install dependencies:
 	sudo apt-get install build-essential git cmake libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-dev libqt4-dev libfftw3-dev
 2. BladeRF installation (skip this if you use USRP)
+
  please refer to https://github.com/Nuand/bladeRF/wiki/Getting-Started%3A-Linux for a complete installation guide
+
  To activate the release PPA, simply:
+
 	sudo add-apt-repository ppa:bladerf/bladerf
 	sudo apt-get update
 	sudo apt-get install bladerf libbladerf-dev bladerf-firmware-fx3 bladerf-fpga-hostedx40 
