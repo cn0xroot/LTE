@@ -53,7 +53,7 @@ OWL is built on the srsLTE library by Software Radio Systems. Thus, if you are a
 Part 1 - Installation:
 ----------------------
 1. Install dependencies:
-```bash
+```Bash
 sudo apt-get install build-essential git cmake libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-dev libqt4-dev libfftw3-dev
 ```
 2. BladeRF installation (skip this if you use USRP )
