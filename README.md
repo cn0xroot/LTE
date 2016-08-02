@@ -1,4 +1,4 @@
-IMDEA-OWL ![alt text](owl_logo.png "OWL Logo")
+IMDEA-OWL ![alt text](owl_logo_small.png "OWL Logo")
 =========
 
 OWL stands for Online Watcher of LTE. imdeaOWL is a free and open-source LTE control channel decoder developed by IMDEA Networks Institute and based on srsLTE, an LTE library for SDR UE and eNodeB developed by SRS (www.softwareradiosystems.com). OWL provides blind (oblivious of the terminal identity) decoding of DCI messages on LTE PDCCH.
