@@ -1,5 +1,4 @@
-IMDEA-OWL
-========
+#IMDEA-OWL
 
 OWL stands for Online Watcher of LTE. imdeaOWL is a free and open-source LTE control channel decoder developed by IMDEA Networks Institute and based on srsLTE, an LTE library for SDR UE and eNodeB developed by SRS (www.softwareradiosystems.com). OWL provides blind (oblivious of the terminal identity) decoding of DCI messages on LTE PDCCH.
 OWL is built on srsLTE v1.2 (https://github.com/srsLTE/srsLTE) and inherits its modularity and main features. It is entirely written in C and, if available in the system, uses the acceleration library VOLK distributed in GNURadio. 
@@ -35,8 +34,7 @@ srsLTE Missing Features:
  * Semi-Persistent Scheduling
  * Aperiodic CQI reports
 
-Hardware
-========
+##Hardware
 
 The library currently supports the Ettus Universal Hardware Driver (UHD) and the bladeRF driver. Thus, any hardware supported by UHD or bladeRF can be used. There is no sampling rate conversion, therefore the hardware should support 30.72 MHz clock in order to work correctly with LTE sampling frequencies and decode signals from live LTE base stations. 
 
@@ -45,24 +43,26 @@ We have tested the following hardware:
  * USRP X300
  * bladeRF
 
-OWL installation and minimal use guide:
-========
+#OWL installation and minimal use guide:
 
 OWL is built on the srsLTE library by Software Radio Systems. Thus, if you are already able to use srsLTE (at least pdsch_ue) OWL should run without many issues. However, this guide will give you the minimum set of information to install all the required software on a clean ubuntu 14.04+ installation. Also, this guide include steps for the preferable installation of the Nuand BladeRF software. OWL is also tested on USRP x310, but the guide for a correct installation of the related UHD library is to be done in the next release. 
 
-Part 1 - Installation:
-========
+##Part 1 - Installation:
 
-1.1. Install dependencies:
-$ sudo apt-get install build-essential git cmake libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-dev libqt4-dev libfftw3-dev
+1. Install dependencies:
+```
+sudo apt-get install build-essential git cmake libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-dev libqt4-dev libfftw3-dev
+```
 
-1.2 BladeRF installation (skip this if you use USRP )
+2. BladeRF installation (skip this if you use USRP )
 https://github.com/Nuand/bladeRF/wiki/Getting-Started%3A-Linux
 
 To activate the release PPA, simply:
-$ sudo add-apt-repository ppa:bladerf/bladerf
-$ sudo apt-get update
-$ sudo apt-get install bladerf libbladerf-dev bladerf-firmware-fx3 bladerf-fpga-hostedx40 
+```
+sudo add-apt-repository ppa:bladerf/bladerf
+sudo apt-get update
+sudo apt-get install bladerf libbladerf-dev bladerf-firmware-fx3 bladerf-fpga-hostedx40 
+```
 
 1.3 Install srsgui (this is not mandatory for OWL to work, but is a nice tool and it helps testing srsLTE and OWL):
 $ git clone https://github.com/suttonpd/srsgui.git
