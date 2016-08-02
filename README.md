@@ -59,7 +59,6 @@ sudo apt-get install build-essential git cmake libboost-system-dev libboost-test
 
 2. BladeRF installation (skip this if you use USRP )
 https://github.com/Nuand/bladeRF/wiki/Getting-Started%3A-Linux
-
 To activate the release PPA, simply:
 ```
 sudo add-apt-repository ppa:bladerf/bladerf
@@ -69,7 +68,6 @@ sudo apt-get install bladerf libbladerf-dev bladerf-firmware-fx3 bladerf-fpga-ho
 
 3. Install srsgui 
 This is not mandatory for OWL to work, but is a nice tool and it helps testing srsLTE and OWL:
-
 ```
 git clone https://github.com/suttonpd/srsgui.git
 cd srsgui
@@ -94,20 +92,17 @@ cd build
 cmake ../
 make
 ```
-
 If everything succeeded you will find OWL's executables together with srsLTE's examples in the srsLTE/build/srslte/examples folder.
 
 Part 2 - Executable description:
 --------------------------------
 1. Inherited from srsLTE
-
-- cell_search
+ - cell_search
 Scan a given LTE band trying to acquire synchronization with the base station. Please, refer to this website for the used frequencies in your country 
 http://www.spectrummonitoring.com/frequencies
 cell_search requires the band number and can also use the EARFCN numbers to narrow the search, please refer to this website for details:
 http://niviuk.free.fr/lte_band.php
-
-- pdsch_ue
+ - pdsch_ue
 emulate a UE trying to connecting to a given frequency, first looking for synchronization and, then, decoding control messages related to broadcast transmissions.
 In addition, this program provide some useful statistics about synchronization and decoding success rate.
 TIP: once you have the frequency of a base station you can run
@@ -115,9 +110,8 @@ TIP: once you have the frequency of a base station you can run
 ./pdsch_ue -f <freq>
 ```
 where <freq> is the base station central frequency in hertz, i.e. 1.8 GHz can be given as 1800e6 or 1.8e9. If the synchronization is successfull, pdsch_ue will plot the constellations of the control channel and the shared downlink channel (only broadcast messages). If the signal is clean, you should be able to see a QPSK constellation in both diagrams. In addition, the amplitude and phase channel responses are plotted together with the PSS synchronization. The last one is ok if it looks like a gaussian.
-
 2. OWL files
-- imdea_capture_sync
+ - imdea_capture_sync
 This program capture a raw trace of the LTE channel synchronized on the beginning of the first subframe 0 detected. A very useful reference is http://www.sharetechnote.com/html/FrameStructure_DL.html
 Usage: 
 ```
@@ -131,8 +125,7 @@ TIP: putting -o /dev/null creates no output, but allows to test the signal synch
 Decoded MIB ... (good)
 MIB not decoded ... (noise on the channel)
 sync loss (bad)
-
-- imdea_cc_decoder
+ - imdea_cc_decoder
 This program is the main part of OWL, where the control channel is decoded. It works both online and offline and pre-recorded traces.
 Online usage:
 ```
@@ -140,44 +133,46 @@ Online usage:
 ```
 <cc_out_filename> specifies where to save the decoded control channel messages. If omitted, the messages are printed to the stdout. Don't forget to redirect the stderr (2> /dev/null), which is used to produce the list of location to be checked by the fine-tuner.
 The output of the decoder is a tab separated list where each line represents a decoded message. The columns are as follows:
- 1.	SFN: internal timing of LTE (1 every frame = 10 ms)
- 2.	subframe index from 0 to 9 (1 subframe = 1 ms)
- 3.	RNTI in decimal
- 4.	Direction: 1 = downlink; 0 = uplink
- 5.	MCS in 0 - 31
- 6.	number of allocated resource blocks in 0 - 110
- 7.	transport block size in bits
- 8.	transport block size in bits (code word 0), -1 if n/a
- 9.	transport block size in bits (code word 1), -1 if n/a
- 10.	DCI message type. This version only scans for 0 (format 0), 2 (format 1a), 6 (format 2a)
- 11.	new data indicator toggle for codeword 0
- 12.	new data indicator toggle for codeword 1
- 13.	HARQ process id
- 14.	ncce location of the DCI message
- 15.	aggregation level of the DCI message
- 16.	CFI
- 17.	DCI correctness check 
-
+  1.	SFN: internal timing of LTE (1 every frame = 10 ms)
+  2.	subframe index from 0 to 9 (1 subframe = 1 ms)
+  3.	RNTI in decimal
+  4.	Direction: 1 = downlink; 0 = uplink
+  5.	MCS in 0 - 31
+  6.	number of allocated resource blocks in 0 - 110
+  7.	transport block size in bits
+  8.	transport block size in bits (code word 0), -1 if n/a
+  9.	transport block size in bits (code word 1), -1 if n/a
+  10.	DCI message type. This version only scans for 0 (format 0), 2 (format 1a), 6 (format 2a)
+  11.	new data indicator toggle for codeword 0
+  12.	new data indicator toggle for codeword 1
+  13.	HARQ process id
+  14.	ncce location of the DCI message
+  15.	aggregation level of the DCI message
+  16.	CFI
+  17.	DCI correctness check 
 Offline usage:
-$ ./imdea_cc_decoder -i <input_trace_filename> -l <cell_num> -c <pci> -P <ports> -p <prb> -z <rnti_out_filename> -Z <rnti_in_filename> 1> <cc_out_filename> 2> <cc_fix_filename>
+```
+./imdea_cc_decoder -i <input_trace_filename> -l <cell_num> -c <pci> -P <ports> -p <prb> -z <rnti_out_filename> -Z <rnti_in_filename> 1> <cc_out_filename> 2> <cc_fix_filename>
+```
 <input_trace_filename> a trace that you saved with imdea_capture_sync
 <pci> <ports> <prb> physical cell id, antenna ports and number of physical resourrce blocks of the LTE channel. All of these can be obtained using cell_search, pdsch_ue, imdea_capture_sync
 <rnti_in_filename> <rnti_out_filename> are the rnti lists. They are optional; if not provided the tool generates a new list. If available it starts with the information given. The format is a vector of 65355 elements, which can be 0 (not used), 1 (used, but not used in the last 10 seconds), 2 (used in the last 10 seconds).
 <cc_fix_filename> output file for the fine_tuner program. It specify one location to be checked per line. The columns are as follows:
-1. SFN
-2. subframe
-3. ncce
-4. L
-5. CFI
-
-- imdea_fine_tuner
+  1. SFN
+  2. subframe
+  3. ncce
+  4. L
+  5. CFI
+ - imdea_fine_tuner
 offline tool to post_process recorded trace to try to decode DCI messages in location that could not be decoded by imdea_cc_decoder.
 Usage:
-$ ./imdea_fine_tuner -i <input_trace_filename> -l <cell_num> -c <pci> -P <ports> -p <prb> -z <cc_fix_filename> -Z <rnti_in_filename> 1> <cc_fixed_filename> 2> /dev/null
+```
+./imdea_fine_tuner -i <input_trace_filename> -l <cell_num> -c <pci> -P <ports> -p <prb> -z <cc_fix_filename> -Z <rnti_in_filename> 1> <cc_fixed_filename> 2> /dev/null
+```
 it can only be used after imdea_cc_decoder on the output produced. imdea_fine_tuner generate <cc_fixed_filename> with the same format of <cc_out_filename> (see above)
 
 Part 3 - OWL setup and first use
-
+--------------------------------
 0. Install everything correctly!
 1. Use a software defined radio capable of sampling at a LTE compliant sampling rate (30.72, 23.04, 15.36, 11.52).
 2. srsLTE and OWL are heavy on the I/O. Try not to have read/write operations at the same time (different buffers may interfer). If overruns are detected, consider working on ramdisk (see https://wiki.archlinux.org/index.php/Tmpfs)
@@ -188,98 +183,20 @@ Part 3 - OWL setup and first use
 7. Once you have a good signal, you should have pdsch_ue showing very clean QPSK constellations and imdea_capture_sync showing almost only "Decoded MIB ..." output.
 8. At this point you should have <freq> <cell_num> <pci> <ports> <prb>
 9. Try first the online decoder with the output on screen:
-$ ./imdea_cc_decoder -f <freq> -n <subframe_num> 2> /dev/null
+```
+./imdea_cc_decoder -f <freq> -n <subframe_num> 2> /dev/null
+```
 10. Try a capture, with subsequent decoding and fine tuning:
-$ ./imdea_capture_sync -f <freq> -l <cell_num> -n <subframe_num> -o <output_filename>
-$ ./imdea_cc_decoder -i <input_trace_filename> -l <cell_num> -c <pci> -P <ports> -p <prb> -z <rnti_out_filename> -Z <rnti_in_filename> 1> <cc_out_filename> 2> <cc_fix_filename>
-$ ./imdea_fine_tuner -i <input_trace_filename> -l <cell_num> -c <pci> -P <ports> -p <prb> -z <cc_fix_filename> -Z <rnti_in_filename> 1> <cc_fixed_filename> 2> /dev/null
-$ sort -u <cc_out_filename> <cc_fixed_filename> -o <cc_total_filename> (to combine the output)
+```
+./imdea_capture_sync -f <freq> -l <cell_num> -n <subframe_num> -o <output_filename>
+./imdea_cc_decoder -i <input_trace_filename> -l <cell_num> -c <pci> -P <ports> -p <prb> -z <rnti_out_filename> -Z <rnti_in_filename> 1> <cc_out_filename> 2> <cc_fix_filename>
+./imdea_fine_tuner -i <input_trace_filename> -l <cell_num> -c <pci> -P <ports> -p <prb> -z <cc_fix_filename> -Z <rnti_in_filename> 1> <cc_fixed_filename> 2> /dev/null
+sort -u <cc_out_filename> <cc_fixed_filename> -o <cc_total_filename> (to combine the output)
+```
 11. You can also use the recorded trace to obtain a spectrogram of the LTE transmission (in a future release, I will provide matlab and octave scripts to do that as well).
 12. Have fun!
 
+Acknowledgements
+================
 
 
-
-Download & Install Instructions
-=================================
-
-* Mandatory dependencies: 
-  * libfftw
-* Optional requirements: 
-  * srsgui:        for real-time plotting. Download it here: https://github.com/srslte/srsgui 
-  * VOLK:          if the VOLK library and headers are detected, they will be used for accelerating some signal processing functions. 
-  * Matlab/Octave: if found by CMake, MEX files will also be generated and installed. If you find any compilation issue with MEX and you don't need them, pass -DDisableMEX=ON to cmake to disable them. 
-
-Download and build srsLTE: 
-```
-git clone https://github.com/srsLTE/srsLTE.git
-cd srsLTE
-mkdir build
-cd build
-cmake ../
-make 
-```
-
-The library can also be installed using the command ```sudo make install```. 
-
-Running srsLTE Examples
-========================
-
-* SIB1 reception and UE measurement from commercial LTE networks: 
-```
-lte/examples/pdsch_ue -f [frequency_in_Hz]
-```
-Where -f is the LTE channel frequency. 
-
-* eNodeB to UE Downlink PHY test
-
-You will need two computers, each equipped with a USRP. At the transmitter side, run: 
-
-```
-lte/examples/pdsch_enodeb -f [frequency_in_Hz] [-h for more commands]
-```
-
-At the receiver run:
-```
-lte/examples/pdsch_ue -r 1234 -f [frequency_in_Hz]
-```
-
-At the transmitter console, it is possible to change the Modulation and Coding Scheme (MCS) by typing a new number (between 0 and 28) and pressing Enter. 
-
-
-The output at the receiver should look something similar to the following video. In this example, we removed the transmitter and receiver antennas in the middle of the demonstration, showing how reception is still possible (despite with some erros). 
-
-https://www.dropbox.com/s/txh1nuzdb0igq5n/demo_pbch.ogv
-
-![Screenshopt of the PBCH example output](pbch_capture.png "Screenshopt of the PBCH example output")
-
-* Video over Downlink PHY (eNodeB to UE)
-
-The previous example sends random bits to the UE. It is possible to open a TCP socket and stream video over the LTE PHY DL wireless connection. At the transmitter side, run the following command:  
-
-```
-lte/examples/pdsch_enodeb -f [frequency_in_Hz] -u 2000 [-h for more commands]
-```
-
-The argument -u 2000 will open port 2000 for listening for TCP connections. Set a high-order MCS, like 16 by typing 16 in the eNodeB console and pressing Enter. 
-
-```
-lte/examples/pdsch_ue -r 1234 -u 2001 -U 127.0.0.1 -f [frequency_in_Hz]
-```
-
-The arguments -u 2001 -U 127.0.0.1 will forward the data that was injected at the eNodeB to address:port indicated by the argument. Once you have the system running, you can transmit some useful data, like a video stream. At the transmitter side, run:  
-
-```
-avconv -f video4linux2 -i /dev/video0 -c:v mp4 -f mpegts tcp://127.0.0.1:2000 
-```
-to stream the video captured from the webcam throught the local host port 2000. At the receiver, run: 
-
-```
-avplay tcp://127.0.0.1:2001?listen -analyzeduration 100 -loglevel verbose
-```
-to watch the video. 
-
-Support
-========
-
-Mailing list: http://www.softwareradiosystems.com/mailman/listinfo/srslte-users
