@@ -53,10 +53,9 @@ OWL is built on the srsLTE library by Software Radio Systems. Thus, if you are a
 Part 1 - Installation:
 ----------------------
 1. Install dependencies:
-```
+```bash
 sudo apt-get install build-essential git cmake libboost-system-dev libboost-test-dev libboost-thread-dev libqwt-dev libqt4-dev libfftw3-dev
 ```
-
 2. BladeRF installation (skip this if you use USRP )
 https://github.com/Nuand/bladeRF/wiki/Getting-Started%3A-Linux
 To activate the release PPA, simply:
@@ -65,7 +64,6 @@ sudo add-apt-repository ppa:bladerf/bladerf
 sudo apt-get update
 sudo apt-get install bladerf libbladerf-dev bladerf-firmware-fx3 bladerf-fpga-hostedx40 
 ```
-
 3. Install srsgui 
 This is not mandatory for OWL to work, but is a nice tool and it helps testing srsLTE and OWL:
 ```
@@ -77,13 +75,11 @@ cmake ../
 make
 sudo make install
 ```
-
 4. Install gnuradio
 only VOLK is needed, but the VOLK standalone installation usually fails and installing gnuradio in this way is usually fast and error-free. If you have problem with this, just try to have VOLK installed https://github.com/gnuradio/volk):
 ```
 sudo apt-get install gnuradio
 ```
-
 5. Clone and install OWL
 ```
 git clone git@git.networks.imdea.org:nicola_bui/imdeaowl.git
@@ -111,7 +107,7 @@ TIP: once you have the frequency of a base station you can run
 ```
 where <freq> is the base station central frequency in hertz, i.e. 1.8 GHz can be given as 1800e6 or 1.8e9. If the synchronization is successfull, pdsch_ue will plot the constellations of the control channel and the shared downlink channel (only broadcast messages). If the signal is clean, you should be able to see a QPSK constellation in both diagrams. In addition, the amplitude and phase channel responses are plotted together with the PSS synchronization. The last one is ok if it looks like a gaussian.
 2. OWL files
- - imdea_capture_sync
+- imdea_capture_sync
 This program capture a raw trace of the LTE channel synchronized on the beginning of the first subframe 0 detected. A very useful reference is http://www.sharetechnote.com/html/FrameStructure_DL.html
 Usage: 
 ```
@@ -125,7 +121,7 @@ TIP: putting -o /dev/null creates no output, but allows to test the signal synch
 Decoded MIB ... (good)
 MIB not decoded ... (noise on the channel)
 sync loss (bad)
- - imdea_cc_decoder
+- imdea_cc_decoder
 This program is the main part of OWL, where the control channel is decoded. It works both online and offline and pre-recorded traces.
 Online usage:
 ```
@@ -198,5 +194,4 @@ sort -u <cc_out_filename> <cc_fixed_filename> -o <cc_total_filename> (to combine
 
 Acknowledgements
 ================
-
-
+If 
