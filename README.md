@@ -93,7 +93,7 @@ $ sudo apt-get install gnuradio
 - Clone and install OWL
 
 ```sh
-$ git clone git@git.networks.imdea.org:nicola_bui/imdeaowl.git
+$ git clone https://git.networks.imdea.org/nicola_bui/imdeaowl.git
 $ cd imdeaowl
 $ mkdir build
 $ cd build
