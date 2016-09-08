@@ -2,11 +2,14 @@ IMDEA-OWL
 =========
 
 OWL stands for Online Watcher of LTE. imdeaOWL is a free and open-source LTE control channel decoder developed by IMDEA Networks Institute and based on srsLTE, an LTE library for SDR UE and eNodeB developed by SRS (www.softwareradiosystems.com). OWL provides blind (oblivious of the terminal identity) decoding of DCI messages on LTE PDCCH.
-OWL is built on srsLTE v1.2 (https://github.com/srsLTE/srsLTE) and inherits its modularity and main features. It is entirely written in C and, if available in the system, uses the acceleration library VOLK distributed in GNURadio. 
+OWL is built on srsLTE v1.3 (https://github.com/srsLTE/srsLTE) and inherits its modularity and main features. It is entirely written in C and, if available in the system, uses the acceleration library VOLK distributed in GNURadio. 
 
 ![alt text](owl_logo_small.png "OWL Logo")
 
 The OWL software license is AGPLv3.
+
+New feature:
+ * OWL now offers a graphical decoder showing: online spectrograph and average (per frame) downlink used resources and data rate. See guidelines below for more details.   
 
 OWL specific features:
  * Compliant with DCI formats 0, 1, 1A, 1B, 1C, 1D, 2, 2A
@@ -193,6 +196,10 @@ $ ./imdea_fine_tuner -i <input_trace_filename> -l <cell_num> -c <pci> -P <ports>
 ```
 
 it can only be used after imdea_cc_decoder on the output produced. imdea_fine_tuner generate <cc_fixed_filename> with the same format of <cc_out_filename> (see above)
+
+
+
+![alt text](capture.png "Graphical Decoder")
 
 Part 3 - OWL setup and first use
 --------------------------------
