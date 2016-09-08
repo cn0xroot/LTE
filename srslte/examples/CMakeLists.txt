@@ -82,9 +82,6 @@ if(RF_FOUND)
   add_executable(usrp_capture_sync usrp_capture_sync.c)
   target_link_libraries(usrp_capture_sync srslte)
 
-  add_executable(imdea_online_decoder_tuned imdea_online_decoder_tuned.c)
-  target_link_libraries(imdea_online_decoder_tuned srslte)
-
   add_executable(imdea_capture_sync imdea_capture_sync.c)
   target_link_libraries(imdea_capture_sync srslte)
   
