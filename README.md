@@ -197,7 +197,20 @@ $ ./imdea_fine_tuner -i <input_trace_filename> -l <cell_num> -c <pci> -P <ports>
 
 it can only be used after imdea_cc_decoder on the output produced. imdea_fine_tuner generate <cc_fixed_filename> with the same format of <cc_out_filename> (see above)
 
+- imdea_cc_decoder_graph
 
+This program is identical to imdea_cc_decoder, but in addition it displays five graphs:
+- a spectrograph of the received power
+- average downlink frame resource usage 
+- average downlink frame data rate
+- average uplink frame resource usage 
+- average uplink frame data rate
+
+Online usage:
+```sh
+$ ./imdea_cc_decoder_graph -f <freq> &> /dev/null
+```
+Both stderr and stdout are redirected to /dev/null, because they will produce the same output as imdea_cc_decoder does. Below an example of the obtained graphs.
 
 ![alt text](capture.png "Graphical Decoder")
 
