@@ -197,6 +197,10 @@ $ ./imdea_fine_tuner -i <input_trace_filename> -l <cell_num> -c <pci> -P <ports>
 
 it can only be used after imdea_cc_decoder on the output produced. imdea_fine_tuner generate <cc_fixed_filename> with the same format of <cc_out_filename> (see above)
 
+
+
+![alt text](capture.png "Graphical Decoder")
+
 Part 3 - OWL setup and first use
 --------------------------------
 
