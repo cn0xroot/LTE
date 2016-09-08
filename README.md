@@ -200,11 +200,11 @@ it can only be used after imdea_cc_decoder on the output produced. imdea_fine_tu
 - imdea_cc_decoder_graph
 
 This program is identical to imdea_cc_decoder, but in addition it displays five graphs:
-- a spectrograph of the received power
-- average downlink frame resource usage 
-- average downlink frame data rate
-- average uplink frame resource usage 
-- average uplink frame data rate
+1. a spectrograph of the received power
+2. average downlink frame resource usage 
+3. average downlink frame data rate
+4. average uplink frame resource usage 
+5. average uplink frame data rate
 
 Online usage:
 ```sh
