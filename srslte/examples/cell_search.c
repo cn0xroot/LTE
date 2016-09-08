@@ -129,7 +129,7 @@ bool go_exit = false;
 
 void sig_int_handler(int signo)
 {
-  fprintf(stderr,"SIGINT received. Exiting...\n");
+  printf("SIGINT received. Exiting...\n");
   if (signo == SIGINT) {
     go_exit = true;
   }
@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
   
   parse_args(argc, argv);
     
-  fprintf(stderr,"Opening RF device...\n");
+  printf("Opening RF device...\n");
   if (srslte_rf_open(&rf, rf_args)) {
     fprintf(stderr, "Error opening rf\n");
     exit(-1);
@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
   if (!cell_detect_config.init_agc) {
     srslte_rf_set_rx_gain(&rf, rf_gain);
   } else {
-    fprintf(stderr,"Starting AGC thread...\n");
+    printf("Starting AGC thread...\n");
     if (srslte_rf_start_gain_thread(&rf, false)) {
       fprintf(stderr, "Error opening rf\n");
       exit(-1);
@@ -191,11 +191,11 @@ int main(int argc, char **argv) {
     srslte_rf_rx_wait_lo_locked(&rf);
     INFO("Set rf_freq to %.3f MHz\n", (double) channels[freq].fd * MHZ/1000000);
     
-    fprintf(stderr,"[%3d/%d]: EARFCN %d Freq. %.2f MHz looking for PSS.\n", freq, nof_freqs,
+    printf("[%3d/%d]: EARFCN %d Freq. %.2f MHz looking for PSS.\n", freq, nof_freqs,
                       channels[freq].id, channels[freq].fd);fflush(stdout);
     
     if (SRSLTE_VERBOSE_ISINFO()) {
-      fprintf(stderr,"\n");
+      printf("\n");
     }
       
     bzero(found_cells, 3*sizeof(srslte_ue_cellsearch_result_t));
@@ -233,7 +233,7 @@ int main(int argc, char **argv) {
             exit(-1);
           }
           if (ret == SRSLTE_UE_MIB_FOUND) {
-            fprintf(stderr,"Found CELL ID %d. %d PRB, %d ports\n",
+            printf("Found CELL ID %d. %d PRB, %d ports\n", 
                  cell.id, 
                  cell.nof_prb, 
                  cell.nof_ports);
@@ -250,7 +250,7 @@ int main(int argc, char **argv) {
     }    
   }
   
-  fprintf(stderr,"\n\nFound %d cells\n", n_found_cells);
+  printf("\n\nFound %d cells\n", n_found_cells);
   for (int i=0;i<n_found_cells;i++) {
     printf("Found CELL %.1f MHz, EARFCN=%d, PHYID=%d, %d PRB, %d ports, PSS power=%.1f dBm\n", 
            results[i].freq,
@@ -262,7 +262,7 @@ int main(int argc, char **argv) {
 
   }
   
-  fprintf(stderr,"\nBye\n");
+  printf("\nBye\n");
     
   srslte_rf_close(&rf);
   exit(0);

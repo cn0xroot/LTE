@@ -71,7 +71,7 @@ int srslte_cqi_format2_subband_pack(srslte_cqi_format2_subband_t *msg, uint8_t b
   uint8_t *body_ptr = buff; 
   srslte_bit_unpack(msg->subband_cqi, &body_ptr, 4);  
   srslte_bit_unpack(msg->subband_label, &body_ptr, msg->subband_label_2_bits?2:1);  
-  return 4+msg->subband_label_2_bits?2:1;    
+  return 4+(msg->subband_label_2_bits)?2:1;    
 }
 
 int srslte_cqi_value_pack(srslte_cqi_value_t *value, uint8_t buff[SRSLTE_CQI_MAX_BITS])
@@ -129,19 +129,23 @@ bool srslte_cqi_send(uint32_t I_cqi_pmi, uint32_t tti) {
   } else if (I_cqi_pmi <= 1023) {
     return false; 
   }
-  
-  if ((tti-N_offset)%N_p == 0) {
-    return true; 
-  } else {
-    return false; 
+  if (N_p) {
+    if ((tti-N_offset)%N_p == 0) {
+      return true; 
+    } 
   }
+  return false; 
 }
 
 
 /* SNR-to-CQI conversion, got from "Downlink SNR to CQI Mapping for Different Multiple Antenna Techniques in LTE"
  * Table III. 
 */
+// From paper
 static float cqi_to_snr_table[15] = { 1.95, 4, 6, 8, 10, 11.95, 14.05, 16, 17.9, 19.9, 21.5, 23.45, 25.0, 27.30, 29};
+
+// From experimental measurements @ 5 MHz 
+//static float cqi_to_snr_table[15] = { 1, 1.75, 3, 4, 5, 6, 7.5, 9, 11.5, 13.0, 15.0, 18, 20, 22.5, 26.5};
 
 uint8_t srslte_cqi_from_snr(float snr)
 {
@@ -153,4 +157,34 @@ uint8_t srslte_cqi_from_snr(float snr)
  return 0;
 }
 
+/* Returns the subband size for higher layer-configured subband feedback,
+ * i.e., the number of RBs per subband as a function of the cell bandwidth
+ * (Table 7.2.1-3 in TS 36.213)
+ */
+int srslte_cqi_hl_get_subband_size(int nof_prb)
+{
+  if (nof_prb < 7) {
+    return 0;
+  } else if (nof_prb <= 26) {
+    return 4;
+  } else if (nof_prb <= 63) {
+    return 6;
+  } else if (nof_prb <= 110) {
+    return 8;
+  } else {
+    return -1;
+  }
+}
 
+/* Returns the number of subbands to be reported in CQI measurements as
+ * defined in clause 7.2 in TS 36.213, i.e., the N parameter
+ */
+int srslte_cqi_hl_get_no_subbands(int nof_prb)
+{
+  int hl_size = srslte_cqi_hl_get_subband_size(nof_prb); 
+  if (hl_size > 0) {
+    return (int)ceil((float)nof_prb/hl_size);
+  } else {
+    return 0;
+  }
+}

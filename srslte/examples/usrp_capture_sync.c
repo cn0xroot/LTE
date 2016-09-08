@@ -151,19 +151,19 @@ int main(int argc, char **argv) {
   srslte_rf_rx_wait_lo_locked(&rf);
   srslte_rf_start_rx_stream(&rf);
 
-  cell.cp = SRSLTE_CP_NORM;
+  cell.cp = SRSLTE_CP_NORM; 
   cell.id = N_id_2;
-  cell.nof_prb = nof_prb;
-  cell.nof_ports = 1;
+  cell.nof_prb = nof_prb; 
+  cell.nof_ports = 1; 
   
   if (srslte_ue_sync_init(&ue_sync, cell, srslte_rf_recv_wrapper, (void*) &rf)) {
     fprintf(stderr, "Error initiating ue_sync\n");
-    exit(-1);
+    exit(-1); 
   }
-
+ 
   uint32_t subframe_count = 0;
-  bool start_capture = false;
-  bool stop_capture = false;
+  bool start_capture = false; 
+  bool stop_capture = false; 
   while((subframe_count < nof_subframes || nof_subframes == -1)
         && !stop_capture)
   {
@@ -175,17 +175,17 @@ int main(int argc, char **argv) {
     if (n == 1) {
       if (!start_capture) {
         if (srslte_ue_sync_get_sfidx(&ue_sync) == 9) {
-          start_capture = true;
-        }
+          start_capture = true; 
+        }        
       } else {
         printf("Writing to file %6d subframes...\r", subframe_count);
         srslte_filesink_write(&sink, buffer, SRSLTE_SF_LEN_PRB(nof_prb));
-        subframe_count++;
-      }
+        subframe_count++;                              
+      }      
     }
     if (!keep_running) {
       if (!start_capture || (start_capture && srslte_ue_sync_get_sfidx(&ue_sync) == 9)) {
-        stop_capture = true;
+        stop_capture = true; 
       }
     }
   }

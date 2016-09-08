@@ -3,11 +3,10 @@
  * \section COPYRIGHT
  *
  * Copyright 2013-2015 Software Radio Systems Limited
- * Copyright 2016 IMDEA Networks Institute
  *
  * \section LICENSE
  *
- * This file is part of OWL, which extends the srsLTE library.
+ * This file is part of the srsLTE library.
  *
  * srsLTE is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -108,29 +107,13 @@ SRSLTE_API int srslte_pdcch_extract_llr(srslte_pdcch_t *q,
                                         uint32_t nsubframe, 
                                         uint32_t cfi);
 
-SRSLTE_API float srslte_pdcch_measure_power(srslte_pdcch_t *q,
-                            srslte_dci_location_t *location);
-
-SRSLTE_API float srslte_pdcch_check_decode(srslte_pdcch_t *q,
-        								   srslte_dci_msg_t *msg,
-										   srslte_dci_location_t *location,
-										   uint16_t *brnti);
-;
-
-/* Decoding functions: Try to decode a DCI message after calling srslte_pdcch_extract_llr */
-SRSLTE_API int srslte_pdcch_decode_msg_power(srslte_pdcch_t *q,
-											 srslte_dci_msg_t *msg,
-											 srslte_dci_location_t *location,
-											 uint32_t sfn,
-											 uint32_t sf_idx);
-
 /* Decoding functions: Try to decode a DCI message after calling srslte_pdcch_extract_llr */
 SRSLTE_API float srslte_pdcch_decode_msg_check(srslte_pdcch_t *q,
                                        srslte_dci_msg_t *msg,
                                        srslte_dci_location_t *location,
                                        srslte_dci_format_t format,
                                        uint16_t *crc_rem,
-									   uint8_t *list);
+  				       uint8_t *list);
 
 /* Decoding functions: Try to decode a DCI message after calling srslte_pdcch_extract_llr */
 SRSLTE_API int srslte_pdcch_decode_msg(srslte_pdcch_t *q, 
@@ -139,6 +122,26 @@ SRSLTE_API int srslte_pdcch_decode_msg(srslte_pdcch_t *q,
                                        srslte_dci_format_t format,
                                        uint16_t *crc_rem);
 
+SRSLTE_API int srslte_pdcch_dci_decode(srslte_pdcch_t *q, 
+                                 float *e, 
+                                 uint8_t *data, 
+                                 uint32_t E, 
+                                 uint32_t nof_bits, 
+                                 uint16_t *crc); 
+
+SRSLTE_API int srslte_pdcch_dci_encode(srslte_pdcch_t *q, 
+                                       uint8_t *data, 
+                                       uint8_t *e, 
+                                       uint32_t nof_bits, 
+                                       uint32_t E,
+                                       uint16_t rnti); 
+
+SRSLTE_API void srslte_pdcch_dci_encode_conv(srslte_pdcch_t *q, 
+                                            uint8_t *data, 
+                                            uint32_t nof_bits, 
+                                            uint8_t *coded_data, 
+                                            uint16_t rnti); 
+
 /* Function for generation of UE-specific search space DCI locations */
 SRSLTE_API uint32_t srslte_pdcch_ue_locations(srslte_pdcch_t *q, 
                                               srslte_dci_location_t *locations, 
@@ -146,6 +149,11 @@ SRSLTE_API uint32_t srslte_pdcch_ue_locations(srslte_pdcch_t *q,
                                               uint32_t nsubframe, 
                                               uint32_t cfi,
                                               uint16_t rnti);
+
+SRSLTE_API uint32_t srslte_pdcch_ue_locations_ncce(uint32_t nof_cce, 
+                                                   srslte_dci_location_t *c, 
+                                                   uint32_t max_candidates, 
+                                                   uint32_t nsubframe, uint16_t rnti); 
 
 /* Function for generation of common search space DCI locations */
 SRSLTE_API uint32_t srslte_pdcch_common_locations(srslte_pdcch_t *q, 
@@ -158,5 +166,11 @@ SRSLTE_API uint32_t srslte_pdcch_ue_locations_all(srslte_pdcch_t *q,
                                                   uint32_t max_locations,
 												  uint32_t nsubframe,
 												  uint32_t cfi);
+
+SRSLTE_API int srslte_pdcch_decode_msg_power(srslte_pdcch_t *q,
+												srslte_dci_msg_t *msg,
+												srslte_dci_location_t *location,
+												uint32_t sfn,
+												uint32_t sf_idx);
 
 #endif

@@ -321,6 +321,8 @@ int main(int argc, char **argv) {
 
   ue_sync.correct_cfo = !prog_args.disable_cfo;
 
+  srslte_pbch_decode_reset(&ue_mib.pbch);
+
   INFO("\nEntering main loop...\n\n", 0);
   /* Main loop */
   ret = srslte_ue_sync_get_buffer(&ue_sync, &sf_buffer);
@@ -332,8 +334,7 @@ int main(int argc, char **argv) {
   }
   if (ret == 1) {
 	if (srslte_ue_sync_get_sfidx(&ue_sync) == 0) {
-    	srslte_pbch_decode_reset(&ue_mib.pbch);
-        n = srslte_ue_mib_decode(&ue_mib, sf_buffer, bch_payload, NULL, &sfn_offset);
+    	n = srslte_ue_mib_decode(&ue_mib, sf_buffer, bch_payload, NULL, &sfn_offset);
         if (n < 0) {
         	fprintf(stderr, "Error decoding UE MIB\n");
             exit(-1);

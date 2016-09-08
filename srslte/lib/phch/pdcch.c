@@ -90,7 +90,7 @@ int srslte_pdcch_init(srslte_pdcch_t *q, srslte_regs_t *regs, srslte_cell_t cell
       }
     }
 
-    uint32_t poly[3] = { 0x6D, 0x4F, 0x57 };
+    int poly[3] = { 0x6D, 0x4F, 0x57 };
     if (srslte_viterbi_init(&q->decoder, SRSLTE_VITERBI_37, poly, SRSLTE_DCI_MAX_BITS + 16, true)) {
       goto clean;
     }
@@ -171,20 +171,25 @@ void srslte_pdcch_free(srslte_pdcch_t *q) {
 
 }
 
+uint32_t srslte_pdcch_ue_locations(srslte_pdcch_t *q, srslte_dci_location_t *c, uint32_t max_candidates,
+                        uint32_t nsubframe, uint32_t cfi, uint16_t rnti) 
+{
+  set_cfi(q, cfi);
+  return srslte_pdcch_ue_locations_ncce(q->nof_cce, c, max_candidates, nsubframe, rnti);
+}
+
 /** 36.213 v9.1.1 
  * Computes up to max_candidates UE-specific candidates for DCI messages and saves them 
  * in the structure pointed by c.
  * Returns the number of candidates saved in the array c.   
  */
-uint32_t srslte_pdcch_ue_locations(srslte_pdcch_t *q, srslte_dci_location_t *c, uint32_t max_candidates,
-                        uint32_t nsubframe, uint32_t cfi, uint16_t rnti) {
+uint32_t srslte_pdcch_ue_locations_ncce(uint32_t nof_cce, srslte_dci_location_t *c, uint32_t max_candidates,
+                        uint32_t nsubframe, uint16_t rnti) {
   
   int l; // this must be int because of the for(;;--) loop
   uint32_t i, k, L, m; 
   uint32_t Yk, ncce;
-  const int S[4] = { 6, 12, 8, 16 };
-
-  set_cfi(q, cfi);
+  const int M[4] = { 6, 6, 2, 2 };
 
   // Compute Yk for this subframe
   Yk = rnti;
@@ -194,31 +199,58 @@ uint32_t srslte_pdcch_ue_locations(srslte_pdcch_t *q, srslte_dci_location_t *c, 
 
   k = 0;
   // All aggregation levels from 8 to 1
-  for (l = 0; l < 3; l++) {
+  for (l = 3; l >= 0; l--) {
     L = (1 << l);
     // For all possible ncce offset
-    for (i = 0; i < SRSLTE_MIN(q->nof_cce / L, S[l]/PDCCH_FORMAT_NOF_CCE(l)); i++) {
-      ncce = L * ((Yk + i) % (q->nof_cce / L));      
-      if (k                              < max_candidates     &&
-          ncce + PDCCH_FORMAT_NOF_CCE(l) <= q->nof_cce) 
-      {            
-        c[k].L = l;
-        c[k].ncce = ncce;
-        
-        DEBUG("UE-specific SS Candidate %d: nCCE: %d, L: %d\n",
-            k, c[k].ncce, c[k].L);            
+    for (i = 0; i < M[l]; i++) {
+      if (nof_cce > L) {
+        ncce = L * ((Yk + i) % (nof_cce / L));      
+        if (k < max_candidates  && ncce + L <= nof_cce) 
+        {            
+          c[k].L = l;
+          c[k].ncce = ncce;
+          
+          DEBUG("UE-specific SS Candidate %d: nCCE: %d, L: %d\n",
+              k, c[k].ncce, c[k].L);            
 
-        k++;          
-      } 
+          k++;          
+        } 
+      }
     }
-  }
+  }    
 
   DEBUG("Initiated %d candidate(s) in the UE-specific search space for C-RNTI: 0x%x\n", k, rnti);
   
   return k; 
 }
 
-
+uint32_t srslte_pdcch_common_locations_ncce(uint32_t nof_cce, srslte_dci_location_t *c, uint32_t max_candidates) 
+{
+  uint32_t i, l, L, k;
+  const int M[4] = { 0, 0, 4, 2 };
+  
+  k = 0;
+  for (l = 3; l > 1; l--) {
+    L = (1 << l);
+    for (i = 0; i < M[l]; i++) {
+      if (nof_cce > L) {
+        uint32_t ncce = L * (i % (nof_cce / L));
+        if (k < max_candidates  && ncce + L <= nof_cce) 
+        {  
+          c[k].L = l;
+          c[k].ncce = ncce; 
+          DEBUG("Common SS Candidate %d: nCCE: %d, L: %d\n",
+              k, c[k].ncce, c[k].L);
+          k++;          
+        }
+      }
+    }
+  }
+  
+  INFO("Initiated %d candidate(s) in the Common search space\n", k);
+  
+  return k;
+}
 
 /**
  * 36.213 9.1.1
@@ -229,28 +261,10 @@ uint32_t srslte_pdcch_ue_locations(srslte_pdcch_t *q, srslte_dci_location_t *c, 
 uint32_t srslte_pdcch_common_locations(srslte_pdcch_t *q, srslte_dci_location_t *c, uint32_t max_candidates, 
                                 uint32_t cfi) 
 {
-  uint32_t i, l, L, k;
-
   set_cfi(q, cfi);
-
-  k = 0;
-  for (l = 3; l > 1; l--) {
-    L = (1 << l);
-    for (i = 0; i < SRSLTE_MIN(q->nof_cce, 16) / (L); i++) {
-      if (k < max_candidates) {
-        c[k].L = l;
-        c[k].ncce = (L) * (i % (q->nof_cce / (L)));
-        DEBUG("Common SS Candidate %d: nCCE: %d, L: %d\n",
-            k, c[k].ncce, c[k].L);
-        k++;          
-      }
-    }
-  }
-  
-  INFO("Initiated %d candidate(s) in the Common search space\n", k);
-  
-  return k;
+  return srslte_pdcch_common_locations_ncce(q->nof_cce, c, max_candidates); 
 }
+
 
 /** 36.213 v9.1.1
  * Computes up to max_candidates UE-specific candidates for DCI messages and saves them
@@ -550,10 +564,10 @@ int srslte_pdcch_decode_msg_power(srslte_pdcch_t *q,
   uint16_t crc_rem;
   double mean = 0;
   uint16_t brnti = 0;
-  srslte_ra_dl_dci_t dl_dci_unpacked;
-  srslte_ra_ul_dci_t ul_dci_unpacked;
-  srslte_ra_dl_grant_t dl_grant;
-  srslte_ra_ul_grant_t ul_grant;
+  //srslte_ra_dl_dci_t dl_dci_unpacked;
+  //srslte_ra_ul_dci_t ul_dci_unpacked;
+  //srslte_ra_dl_grant_t dl_grant;
+  //srslte_ra_ul_grant_t ul_grant;
   srslte_dci_msg_t dci_tmp;
 
 
@@ -622,11 +636,9 @@ int srslte_pdcch_decode_msg_power(srslte_pdcch_t *q,
 
       if (bprob >= 97 && brnti <= 0xffff) {
     	  printf("%d.%d nCCE: %d, L: %d, power: %f, size %d, prob %d rnti 0x%x (OK)\n", sfn, sf_idx, location->ncce, location->L, mean, bsize, bprob, brnti);
-    	  srslte_dci_msg_to_trace(msg, brnti, q->cell.nof_prb, &dl_dci_unpacked, &ul_dci_unpacked, &dl_grant, &ul_grant, sf_idx, sfn, bprob, location->ncce, location->L, q->cell.phich_length, mean);
       } else if (bprob >= 90 && brnti <= 0xffff) {
     	  //if (location->L == 0) printf("%d.%d nCCE: %d, L: %d, power: %f not decoded\n", sfn, sf_idx, location->ncce, location->L, mean);
     	  printf("%d.%d nCCE: %d, L: %d, power: %f, size %d, prob %d rnti 0x%x (MAYBE)\n", sfn, sf_idx, location->ncce, location->L, mean, bsize, bprob, brnti);
-    	  srslte_dci_msg_to_trace(msg, brnti, q->cell.nof_prb, &dl_dci_unpacked, &ul_dci_unpacked, &dl_grant, &ul_grant, sf_idx, sfn, bprob, location->ncce, location->L, q->cell.phich_length, mean);
       } else if (bprob >= 0 && brnti <= 0xffff) {
     	  //if (location->L == 0) printf("%d.%d nCCE: %d, L: %d, power: %f not decoded\n", sfn, sf_idx, location->ncce, location->L, mean);
     	  printf("%d.%d nCCE: %d, L: %d, power: %f, size %d, prob %d rnti 0x%x (ERROR)\n", sfn, sf_idx, location->ncce, location->L, mean, bsize, bprob, brnti);
@@ -636,47 +648,47 @@ int srslte_pdcch_decode_msg_power(srslte_pdcch_t *q,
   return cnt;
 }
 
-
-
-
-
-
-
 /** 36.212 5.3.3.2 to 5.3.3.4
  *
  * Returns XOR between parity and remainder bits
  *
  * TODO: UE transmit antenna selection CRC mask
  */
-static int dci_decode(srslte_pdcch_t *q, float *e, uint8_t *data, uint32_t E, uint32_t nof_bits, uint16_t *crc) {
+int srslte_pdcch_dci_decode(srslte_pdcch_t *q, float *e, uint8_t *data, uint32_t E, uint32_t nof_bits, uint16_t *crc) {
 
   uint16_t p_bits, crc_res;
   uint8_t *x;
 
-  if (q         != NULL         &&
-      data      != NULL         &&
-      E         <= q->max_bits   && 
-      nof_bits  <= SRSLTE_DCI_MAX_BITS)
-  {
-    bzero(q->rm_f, sizeof(float)*3 * (SRSLTE_DCI_MAX_BITS + 16));
-    
-    /* unrate matching */
-    srslte_rm_conv_rx(e, E, q->rm_f, 3 * (nof_bits + 16));
-    
-    /* viterbi decoder */
-    srslte_viterbi_decode_f(&q->decoder, q->rm_f, data, nof_bits + 16);
+  if (q           != NULL) {
+    if (data      != NULL         &&
+        E         <= q->max_bits   && 
+        nof_bits  <= SRSLTE_DCI_MAX_BITS)
+    {
+      bzero(q->rm_f, sizeof(float)*3 * (SRSLTE_DCI_MAX_BITS + 16));
+      
+      uint32_t coded_len = 3 * (nof_bits + 16); 
+      
+      /* unrate matching */
+      srslte_rm_conv_rx(e, E, q->rm_f, coded_len);
+      
+      /* viterbi decoder */
+      srslte_viterbi_decode_f(&q->decoder, q->rm_f, data, nof_bits + 16);
 
-    x = &data[nof_bits];
-    p_bits = (uint16_t) srslte_bit_pack(&x, 16);
-    crc_res = ((uint16_t) srslte_crc_checksum(&q->crc, data, nof_bits) & 0xffff);
-    
-    if (crc) {
-      *crc = p_bits ^ crc_res; 
+      x = &data[nof_bits];
+      p_bits = (uint16_t) srslte_bit_pack(&x, 16);
+      crc_res = ((uint16_t) srslte_crc_checksum(&q->crc, data, nof_bits) & 0xffff);
+      
+      if (crc) {
+        *crc = p_bits ^ crc_res; 
+      }
+          
+      return SRSLTE_SUCCESS;
+    } else {
+      fprintf(stderr, "Invalid parameters: E: %d, max_bits: %d, nof_bits: %d\n", E, q->max_bits, nof_bits);
+      return SRSLTE_ERROR_INVALID_INPUTS;      
     }
-    return SRSLTE_SUCCESS;
   } else {
-    fprintf(stderr, "Invalid parameters: E: %d, max_bits: %d, nof_bits: %d\n", E, q->max_bits, nof_bits);
-    return SRSLTE_ERROR_INVALID_INPUTS;
+    return SRSLTE_ERROR_INVALID_INPUTS;          
   }
 }
 
@@ -706,7 +718,7 @@ float srslte_pdcch_decode_msg_check(srslte_pdcch_t *q,
       fprintf(stderr, "Invalid location: nCCE: %d, L: %d, NofCCE: %d\n",
         location->ncce, location->L, q->nof_cce);
     } else {
-      uint32_t nof_bits = srslte_dci_format_all_sizeof_lut(format, q->cell.nof_prb);
+      uint32_t nof_bits = srslte_dci_format_sizeof(format, q->cell.nof_prb, q->cell.nof_ports);
       uint32_t e_bits = PDCCH_FORMAT_NOF_BITS(location->L);
       DEBUG("Decoding DCI offset %d, e_bits: %d, msg_len %d (nCCE: %d, L: %d)\n",
             location->ncce * 72, e_bits, nof_bits, location->ncce, location->L);
@@ -720,7 +732,7 @@ float srslte_pdcch_decode_msg_check(srslte_pdcch_t *q,
       if (mean > PWR_THR) {
     	ret = dci_decode_and_check_list(q, &q->llr[location->ncce * 72], msg->data, e_bits, nof_bits, crc_rem, list);
 
-//    	printf("nCCE: %d, L: %d, mean power: %f, prob: %f, nof_bits %d\n",location->ncce, location->L, mean, ret, nof_bits);
+    	DEBUG("nCCE: %d, L: %d, mean power: %f, prob: %f, nof_bits %d\n",location->ncce, location->L, mean, ret, nof_bits);
         msg->nof_bits = nof_bits;
         // decomment the following to print the raw bits
 //        for (int i=0; i< msg->nof_bits; i++) {
@@ -750,14 +762,15 @@ int srslte_pdcch_decode_msg(srslte_pdcch_t *q,
   int ret = SRSLTE_ERROR_INVALID_INPUTS;
   if (q                 != NULL       && 
       msg               != NULL       && 
-      srslte_dci_location_isvalid(location)  &&
-      crc_rem           != NULL)
+      srslte_dci_location_isvalid(location))
   {
     if (location->ncce * 72 + PDCCH_FORMAT_NOF_BITS(location->L) > 
       q->nof_cce*72) {
       fprintf(stderr, "Invalid location: nCCE: %d, L: %d, NofCCE: %d\n", 
         location->ncce, location->L, q->nof_cce);
     } else {
+      ret = SRSLTE_SUCCESS;
+      
       uint32_t nof_bits = srslte_dci_format_sizeof_lut(format, q->cell.nof_prb);
       uint32_t e_bits = PDCCH_FORMAT_NOF_BITS(location->L);
     
@@ -766,22 +779,31 @@ int srslte_pdcch_decode_msg(srslte_pdcch_t *q,
         mean += fabsf(q->llr[location->ncce * 72 + i]);
       }
       mean /= e_bits; 
-      if (mean > PWR_THR) {
-        ret = dci_decode(q, &q->llr[location->ncce * 72], 
+      if (mean > 0.5) {
+        ret = srslte_pdcch_dci_decode(q, &q->llr[location->ncce * 72], 
                         msg->data, e_bits, nof_bits, crc_rem);
         if (ret == SRSLTE_SUCCESS) {
           msg->nof_bits = nof_bits;
-        } 
+          // Check format differentiation 
+          if (format == SRSLTE_DCI_FORMAT0 || format == SRSLTE_DCI_FORMAT1A) {
+            msg->format = (msg->data[0] == 0)?SRSLTE_DCI_FORMAT0:SRSLTE_DCI_FORMAT1A;
+          } else {
+            msg->format   = format; 
+          }
+        } else {
+          fprintf(stderr, "Error calling pdcch_dci_decode\n");
+        }
         if (crc_rem) {
-          DEBUG("Decoded DCI: nCCE=%d, L=%d, msg_len=%d, mean=%f, crc_rem=0x%x\n", 
-            location->ncce, location->L, nof_bits, mean, *crc_rem);
+          DEBUG("Decoded DCI: nCCE=%d, L=%d, format=%s, msg_len=%d, mean=%f, crc_rem=0x%x\n",
+            location->ncce, location->L, srslte_dci_format_string(format), nof_bits, mean, *crc_rem);
         }
       } else {
         DEBUG("Skipping DCI:  nCCE=%d, L=%d, msg_len=%d, mean=%f\n",
-              location->ncce, location->L, nof_bits, mean);
-        ret = SRSLTE_SUCCESS;
+              location->ncce, location->L, nof_bits, mean);        
       }
     }
+  } else {
+    fprintf(stderr, "Invalid parameters, location=%d,%d\n", location->ncce, location->L);
   }
   return ret;
 }
@@ -842,7 +864,7 @@ int srslte_pdcch_extract_llr(srslte_pdcch_t *q, cf_t *sf_symbols, cf_t *ce[SRSLT
     /* in control channels, only diversity is supported */
     if (q->cell.nof_ports == 1) {
       /* no need for layer demapping */
-      srslte_predecoding_single(q->symbols[0], q->ce[0], q->d, nof_symbols, noise_estimate);
+      srslte_predecoding_single(q->symbols[0], q->ce[0], q->d, nof_symbols, noise_estimate/2);
     } else {
       srslte_predecoding_diversity(q->symbols[0], q->ce, x, q->cell.nof_ports, nof_symbols);
       srslte_layerdemap_diversity(x, q->d, q->cell.nof_ports, nof_symbols / q->cell.nof_ports);
@@ -859,27 +881,26 @@ int srslte_pdcch_extract_llr(srslte_pdcch_t *q, cf_t *sf_symbols, cf_t *ce[SRSLT
   return ret;  
 }
 
+void srslte_pdcch_dci_encode_conv(srslte_pdcch_t *q, uint8_t *data, uint32_t nof_bits, uint8_t *coded_data, uint16_t rnti) {
+  srslte_convcoder_t encoder;
+  int poly[3] = { 0x6D, 0x4F, 0x57 };
+  encoder.K = 7;
+  encoder.R = 3;
+  encoder.tail_biting = true;
+  memcpy(encoder.poly, poly, 3 * sizeof(int));
 
+  srslte_crc_attach(&q->crc, data, nof_bits);
+  crc_set_mask_rnti(&data[nof_bits], rnti);
 
-//static void crc_set_mask_rnti(uint8_t *crc, uint16_t rnti) {
-//  uint32_t i;
-//  uint8_t mask[16];
-//  uint8_t *r = mask;
-//
-//  DEBUG("Mask CRC with RNTI 0x%x\n", rnti);
-//
-//  srslte_bit_unpack(rnti, &r, 16);
-//  for (i = 0; i < 16; i++) {
-//    crc[i] = (crc[i] + mask[i]) % 2;
-//  }
-//}
+  srslte_convcoder_encode(&encoder, data, coded_data, nof_bits + 16);
+}
 
 /** 36.212 5.3.3.2 to 5.3.3.4
  * TODO: UE transmit antenna selection CRC mask
  */
-static int dci_encode(srslte_pdcch_t *q, uint8_t *data, uint8_t *e, uint32_t nof_bits, uint32_t E,
-    uint16_t rnti) {
-  srslte_convcoder_t encoder;
+int srslte_pdcch_dci_encode(srslte_pdcch_t *q, uint8_t *data, uint8_t *e, uint32_t nof_bits, uint32_t E,
+    uint16_t rnti) 
+{
   uint8_t tmp[3 * (SRSLTE_DCI_MAX_BITS + 16)];
   
   if (q                 != NULL        && 
@@ -889,16 +910,7 @@ static int dci_encode(srslte_pdcch_t *q, uint8_t *data, uint8_t *e, uint32_t nof
       E                 < q->max_bits)
   {
 
-    int poly[3] = { 0x6D, 0x4F, 0x57 };
-    encoder.K = 7;
-    encoder.R = 3;
-    encoder.tail_biting = true;
-    memcpy(encoder.poly, poly, 3 * sizeof(int));
-
-    srslte_crc_attach(&q->crc, data, nof_bits);
-    crc_set_mask_rnti(&data[nof_bits], rnti);
-
-    srslte_convcoder_encode(&encoder, data, tmp, nof_bits + 16);
+    srslte_pdcch_dci_encode_conv(q, data, nof_bits, tmp, rnti); 
 
     DEBUG("CConv output: ", 0);
     if (SRSLTE_VERBOSE_ISDEBUG()) {
@@ -945,12 +957,12 @@ int srslte_pdcch_encode(srslte_pdcch_t *q, srslte_dci_msg_t *msg, srslte_dci_loc
     ret = SRSLTE_ERROR;
     
     if (location.ncce + PDCCH_FORMAT_NOF_CCE(location.L) <= q->nof_cce && 
-        msg->nof_bits < SRSLTE_DCI_MAX_BITS) 
+        msg->nof_bits < SRSLTE_DCI_MAX_BITS - 16) 
     {      
       DEBUG("Encoding DCI: Nbits: %d, E: %d, nCCE: %d, L: %d, RNTI: 0x%x\n",
           msg->nof_bits, e_bits, location.ncce, location.L, rnti);
 
-      dci_encode(q, msg->data, q->e, msg->nof_bits, e_bits, rnti);
+      srslte_pdcch_dci_encode(q, msg->data, q->e, msg->nof_bits, e_bits, rnti);
     
       /* number of layers equals number of ports */
       for (i = 0; i < q->cell.nof_ports; i++) {
@@ -986,7 +998,9 @@ int srslte_pdcch_encode(srslte_pdcch_t *q, srslte_dci_msg_t *msg, srslte_dci_loc
     } else {
         fprintf(stderr, "Illegal DCI message nCCE: %d, L: %d, nof_cce: %d\n", location.ncce, location.L, q->nof_cce);
     }
-  } 
+  } else {
+    fprintf(stderr, "Invalid parameters: cfi=%d, L=%d, nCCE=%d\n", cfi, location.L, location.ncce);
+  }
   return ret;
 }
 

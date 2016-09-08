@@ -89,6 +89,7 @@ typedef struct SRSLTE_API {
   uint16_t current_rnti;
   uint8_t rnti_list[65536];
   uint8_t rnti_cnt[65536];
+  uint32_t totRBup, totRBdw, totBWup, totBWdw;
   uint16_t nof_rnti;
   uint32_t last_n_cce; 
   srslte_dci_location_t last_location;
@@ -121,23 +122,23 @@ SRSLTE_API int srslte_ue_dl_cfg_grant(srslte_ue_dl_t *q,
                                       uint32_t rvidx); 
 
 SRSLTE_API int srslte_ue_dl_find_ul_dci(srslte_ue_dl_t *q, 
-                                        srslte_dci_msg_t *dci_msg, 
                                         uint32_t cfi, 
                                         uint32_t sf_idx, 
-                                        uint16_t rnti); 
+                                        uint16_t rnti, 
+                                        srslte_dci_msg_t *dci_msg); 
 
 SRSLTE_API int srslte_ue_dl_find_dl_dci(srslte_ue_dl_t *q, 
-                                        srslte_dci_msg_t *dci_msg, 
                                         uint32_t cfi, 
                                         uint32_t sf_idx, 
-                                        uint16_t rnti); 
+                                        uint16_t rnti, 
+                                        srslte_dci_msg_t *dci_msg); 
 
 SRSLTE_API int srslte_ue_dl_find_dl_dci_type(srslte_ue_dl_t *q, 
-                                             srslte_dci_msg_t *dci_msg, 
                                              uint32_t cfi, 
                                              uint32_t sf_idx, 
                                              uint16_t rnti, 
-                                             srslte_rnti_type_t rnti_type);
+                                             srslte_rnti_type_t rnti_type, 
+                                             srslte_dci_msg_t *dci_msg);
 
 SRSLTE_API uint32_t srslte_ue_dl_get_ncce(srslte_ue_dl_t *q);
 
@@ -156,73 +157,32 @@ SRSLTE_API int srslte_ue_dl_decode_rnti(srslte_ue_dl_t * q,
                                         uint16_t rnti);
 
 SRSLTE_API int srslte_ue_dl_get_control_cc(srslte_ue_dl_t *q,
-											  cf_t *input,
-											  uint8_t *data,
-											  uint32_t sf_idx,
-											  uint32_t rvidx,
-											  uint32_t sfn);
-
-//SRSLTE_API float srslte_ue_dl_fix_location(srslte_ue_dl_t *q,
-//										 srslte_dci_msg_t *dci_msg,
-//										 uint32_t cfi,
-//										 uint32_t sf_idx,
-//										 srslte_rnti_type_t rnti_type,
-//										 uint32_t sfn,
-//										 uint32_t ncce,
-//										 uint32_t L,
-//										 uint8_t print);
+					  cf_t *input,
+					  uint8_t *data,
+					  uint32_t sf_idx,
+					  uint32_t rvidx,
+					  uint32_t sfn);
 
 SRSLTE_API float srslte_ue_dl_fix_location_ra(srslte_ue_dl_t *q,
-										srslte_dci_msg_t *dci_msg,
-										uint32_t cfi,
-										uint32_t sf_idx,
-										srslte_rnti_type_t rnti_type,
-										uint32_t sfn,
-										uint32_t ncce,
-										uint32_t L,
-										uint8_t print);
-
-//SRSLTE_API int srslte_ue_dl_power_analysis(srslte_ue_dl_t *q,
-//										   srslte_dci_msg_t *dci_msg,
-//										   uint32_t cfi,
-//										   uint32_t sf_idx,
-//										   srslte_rnti_type_t rnti_type,
-//										   uint32_t sfn);
-
-//SRSLTE_API float srslte_ue_dl_fix_control(srslte_ue_dl_t *q,
-//										  cf_t *input,
-//										  uint8_t *data,
-//										  uint32_t sf_idx,
-//										  uint32_t rvidx,
-//										  uint32_t sfn,
-//										  uint32_t ncce,
-//										  uint32_t L,
-//										  uint32_t cfi,
-//										  uint8_t print);
+					srslte_dci_msg_t *dci_msg,
+					uint32_t cfi,
+					uint32_t sf_idx,
+					srslte_rnti_type_t rnti_type,
+					uint32_t sfn,
+					uint32_t ncce,
+					uint32_t L,
+					uint8_t print);
 
 SRSLTE_API float srslte_ue_dl_fix_control_ra(srslte_ue_dl_t *q,
-										  cf_t *input,
-										  uint8_t *data,
-										  uint32_t sf_idx,
-										  uint32_t rvidx,
-										  uint32_t sfn,
-										  uint32_t ncce,
-										  uint32_t L,
-										  uint32_t cfi,
-										  uint8_t print);
-
-//SRSLTE_API int srslte_ue_dl_get_control_power(srslte_ue_dl_t *q,
-//											  cf_t *input,
-//											  uint8_t *data,
-//											  uint32_t sf_idx,
-//											  uint32_t rvidx,
-//											  uint32_t sfn);
-
-SRSLTE_API int srslte_ue_dl_decode_broad(srslte_ue_dl_t *q,
-										 cf_t *input,
-										 uint8_t *data,
-										 uint32_t sf_idx,
-										 uint16_t rnti);
+					  cf_t *input,
+					  uint8_t *data,
+					  uint32_t sf_idx,
+					  uint32_t rvidx,
+					  uint32_t sfn,
+					  uint32_t ncce,
+					  uint32_t L,
+					  uint32_t cfi,
+					  uint8_t print);
 
 SRSLTE_API int srslte_ue_dl_decode_rnti_rv(srslte_ue_dl_t * q, 
                                            cf_t *input, 
@@ -236,7 +196,11 @@ SRSLTE_API bool srslte_ue_dl_decode_phich(srslte_ue_dl_t *q,
                                           uint32_t n_prb_lowest, 
                                           uint32_t n_dmrs); 
 
-SRSLTE_API void srslte_ue_dl_reset(srslte_ue_dl_t *q);
+SRSLTE_API int srslte_ue_dl_decode_broad(srslte_ue_dl_t *q,
+										cf_t *input,
+										uint8_t *data,
+										uint32_t sf_idx,
+										uint16_t rnti);
 
 SRSLTE_API void srslte_ue_dl_set_rnti(srslte_ue_dl_t *q, 
                                       uint16_t rnti);
@@ -244,7 +208,9 @@ SRSLTE_API void srslte_ue_dl_set_rnti(srslte_ue_dl_t *q,
 SRSLTE_API void srslte_ue_dl_save_signal(srslte_ue_dl_t *q, 
                                          srslte_softbuffer_rx_t *softbuffer, 
                                          uint32_t tti, 
-                                         uint32_t rv_idx); 
+                                         uint32_t rv_idx, 
+                                         uint16_t rnti, 
+                                         uint32_t cfi); 
 
 SRSLTE_API void srslte_ue_dl_reset_rnti_list(srslte_ue_dl_t *q);
 
@@ -255,7 +221,5 @@ SRSLTE_API void srslte_ue_dl_reset_rnti_user(srslte_ue_dl_t *q, uint16_t user);
 SRSLTE_API void srslte_ue_dl_reset_rnti_user_to(srslte_ue_dl_t *q, uint16_t user, uint16_t val);
 
 SRSLTE_API int rnti_in_list(srslte_ue_dl_t *q, uint16_t check);
-
-SRSLTE_API int rnti_in_list_near(srslte_ue_dl_t *q, uint16_t check);
 
 #endif

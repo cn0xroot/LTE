@@ -7,8 +7,8 @@
 
 recordedSignal=[];
 
-Npackets = 20;
-SNR_values = linspace(2,6,10);
+Npackets = 1;
+SNR_values = 56;%linspace(2,6,10);
 
 Lp=12;
 N=256;
@@ -35,11 +35,11 @@ w2=reshape(transpose(W2),1,[]);
 
 
 %% Choose RMC 
-[waveform,rgrid,rmccFgOut] = lteRMCDLTool('R.0',[1;0;0;1]);
+[waveform,rgrid,rmccFgOut] = lteRMCDLTool('R.5',[1;0;0;1]);
 waveform = sum(waveform,2);
 
 if ~isempty(recordedSignal)
-    rmccFgOut = struct('CellRefP',1,'NDLRB',100,'DuplexMode','FDD','CyclicPrefix','Normal'); 
+    rmccFgOut = struct('CellRefP',1,'NDLRB',25,'DuplexMode','FDD','CyclicPrefix','Normal'); 
     rmccFgOut.PDSCH.RNTI = 1234;
     rmccFgOut.PDSCH.PRBSet = repmat(transpose(0:rmccFgOut.NDLRB-1),1,2);
     rmccFgOut.PDSCH.TxScheme = 'Port0';
@@ -53,7 +53,7 @@ end
 
 flen=rmccFgOut.SamplingRate/1000;
     
-Nsf = 9; 
+Nsf = 2; 
 
 %% Setup Fading channel model 
 cfg.Seed = 0;                  % Random channel seed
@@ -71,8 +71,8 @@ cfg.SamplingRate = rmccFgOut.SamplingRate;
 
 % Setup channel equalizer
 cec.PilotAverage = 'UserDefined';     % Type of pilot averaging
-cec.FreqWindow = 9;                   % Frequency window size
-cec.TimeWindow = 9;                   % Time window size
+cec.FreqWindow = 1;                   % Frequency window size
+cec.TimeWindow = 1;                   % Time window size
 cec.InterpType = 'linear';             % 2D interpolation type
 cec.InterpWindow = 'Causal';        % Interpolation window type
 cec.InterpWinSize = 1;                % Interpolation window size
@@ -95,8 +95,9 @@ for snr_idx=1:length(SNR_values)
         if isempty(recordedSignal)
 
             %% Fading
-            %rxWaveform = lteFadingChannel(cfg,waveform);
-            rxWaveform = waveform; 
+            [rxWaveform, chinfo] = lteFadingChannel(cfg,waveform);
+            rxWaveform = rxWaveform(chinfo.ChannelFilterDelay+1:end);
+            %rxWaveform = waveform; 
             
             %% Noise Addition
             noise = N0*complex(randn(size(rxWaveform)), randn(size(rxWaveform)));  % Generate noise
@@ -115,7 +116,7 @@ for snr_idx=1:length(SNR_values)
             rmccFgOut.TotSubframes=1;
 
             % Perform channel estimation
-            [hest, nest,estimates] = lteDLChannelEstimate2(rmccFgOut, cec, subframe_rx);
+            [hest, nest] = lteDLChannelEstimate(rmccFgOut, cec, subframe_rx);
 
             [cws,symbols] = ltePDSCHDecode(rmccFgOut,rmccFgOut.PDSCH,subframe_rx,hest,nest);
             [trblkout,blkcrc,dstate] = lteDLSCHDecode(rmccFgOut,rmccFgOut.PDSCH, ... 
@@ -126,7 +127,7 @@ for snr_idx=1:length(SNR_values)
 
             %% Same with srsLTE
             if (rmccFgOut.PDSCH.TrBlkSizes(sf_idx+1) > 0)
-                [dec2, data, pdschRx, pdschSymbols2, cws2] = srslte_pdsch(rmccFgOut, rmccFgOut.PDSCH, ... 
+                [dec2, data, pdschRx, pdschSymbols2, cws2, ce] = srslte_pdsch(rmccFgOut, rmccFgOut.PDSCH, ... 
                                                         rmccFgOut.PDSCH.TrBlkSizes(sf_idx+1), ...
                                                         subframe_rx);
             else
@@ -154,6 +155,12 @@ if (length(SNR_values)>1)
     ylabel('BLER')
     axis([min(SNR_values) max(SNR_values) 1/Npackets/(Nsf+1) 1])
 else
+    subplot(2,1,1)
+    scatter(real(pdschSymbols2),imag(pdschSymbols2))
+    %plot(real(hest))
+    subplot(2,1,2)
+    %plot(1:180,angle(ce(1:180)),1:180,angle(hest(:,1)))
+    plot(abs(ce-hest(:)))
     fprintf('Matlab: %d OK\nsrsLTE: %d OK\n',decoded, decoded_srslte);
 end
 

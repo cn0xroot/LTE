@@ -36,6 +36,9 @@ target_link_libraries(pdsch_ue srslte pthread)
 add_executable(imdea_cc_decoder imdea_cc_decoder.c)
 target_link_libraries(imdea_cc_decoder srslte pthread)
 
+add_executable(imdea_cc_decoder_graph imdea_cc_decoder_graph.c)
+target_link_libraries(imdea_cc_decoder_graph srslte pthread)
+
 add_executable(imdea_fine_tuner imdea_fine_tuner.c)
 target_link_libraries(imdea_fine_tuner srslte pthread)
 
@@ -54,6 +57,7 @@ if(SRSGUI_FOUND)
   include_directories(${SRSGUI_INCLUDE_DIRS})
   target_link_libraries(pdsch_ue ${SRSGUI_LIBRARIES})
   target_link_libraries(imdea_cc_decoder ${SRSGUI_LIBRARIES})
+  target_link_libraries(imdea_cc_decoder_graph ${SRSGUI_LIBRARIES})
   target_link_libraries(imdea_fine_tuner ${SRSGUI_LIBRARIES})
 else(SRSGUI_FOUND)
   add_definitions(-DDISABLE_GRAPHICS)

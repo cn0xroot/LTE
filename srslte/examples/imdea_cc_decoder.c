@@ -438,6 +438,8 @@ int main(int argc, char **argv) {
   // Set initial CFO for ue_sync
   srslte_ue_sync_set_cfo(&ue_sync, cfo);
 
+  srslte_pbch_decode_reset(&ue_mib.pbch);
+
   INFO("\nEntering main loop...\n\n", 0);
   /* Main loop */
   while (!go_exit && (sf_cnt < prog_args.nof_subframes || prog_args.nof_subframes == -1)) {
@@ -460,7 +462,6 @@ int main(int argc, char **argv) {
       switch (state) {
         case DECODE_MIB:
           if (srslte_ue_sync_get_sfidx(&ue_sync) == 0) {
-            srslte_pbch_decode_reset(&ue_mib.pbch);
             n = srslte_ue_mib_decode(&ue_mib, sf_buffer, bch_payload, NULL, &sfn_offset);
             if (n < 0) {
               fprintf(stderr, "Error decoding UE MIB\n");
@@ -477,16 +478,53 @@ int main(int argc, char **argv) {
         	srslte_ue_dl_get_control_cc(&ue_dl, &sf_buffer[prog_args.time_offset], data, srslte_ue_sync_get_sfidx(&ue_sync), 0, sfn);
 #ifndef POWER_ONLY
         	if (ue_dl.current_rnti != 0xffff) {
-        		n = srslte_ue_dl_decode_broad(&ue_dl, &sf_buffer[prog_args.time_offset], data, srslte_ue_sync_get_sfidx(&ue_sync), ue_dl.current_rnti-1);
-				if (n > 0) {
+        		n = srslte_ue_dl_decode_broad(&ue_dl, &sf_buffer[prog_args.time_offset], data, srslte_ue_sync_get_sfidx(&ue_sync), ue_dl.current_rnti);
+        		switch(n) {
+        		case 0:
+//        			printf("No decode\n");
+        			break;
+        		case 40:
 					srslte_ue_dl_reset_rnti_user(&ue_dl, 256*data[(n/8)-2] + data[(n/8)-1]);
-// 					ue_dl.rnti_list[256*data[(n/8)-2] + data[(n/8)-1]] = 1;
-//        			printf("%d\t%d\t%d\t", sfn, srslte_ue_sync_get_sfidx(&ue_sync), 256*data[(n/8)-2] + data[(n/8)-1]);
+//					printf("Found %d\t%d\t%d\n", sfn, srslte_ue_sync_get_sfidx(&ue_sync), 256*data[(n/8)-2] + data[(n/8)-1]);
 //        			for (int k=0; k<(n/8); k++) {
 //        				printf("%02x ",data[k]);
 //        			}
 //        			printf("\n");
-				}
+					break;
+        		case 56:
+					srslte_ue_dl_reset_rnti_user(&ue_dl, 256*data[(n/8)-2] + data[(n/8)-1]);
+//        			printf("Found %d\t%d\t%d\n", sfn, srslte_ue_sync_get_sfidx(&ue_sync), 256*data[(n/8)-2] + data[(n/8)-1]);
+//        			for (int k=0; k<(n/8); k++) {
+//        				printf("%02x ",data[k]);
+//        			}
+//        			printf("\n");
+					break;
+        		case 72:
+					srslte_ue_dl_reset_rnti_user(&ue_dl, 256*data[(n/8)-4] + data[(n/8)-3]);
+//        			printf("Found %d\t%d\t%d\n", sfn, srslte_ue_sync_get_sfidx(&ue_sync), 256*data[(n/8)-4] + data[(n/8)-3]);
+//        			for (int k=0; k<(n/8); k++) {
+//        				printf("%02x ",data[k]);
+//        			}
+//        			printf("\n");
+					break;
+        		case 120:
+        			srslte_ue_dl_reset_rnti_user(&ue_dl, 256*data[(n/8)-3] + data[(n/8)-2]);
+        			srslte_ue_dl_reset_rnti_user(&ue_dl, 256*data[(n/8)-9] + data[(n/8)-8]);
+//					printf("Found %d\t%d\t%d\n", sfn, srslte_ue_sync_get_sfidx(&ue_sync), 256*data[(n/8)-9] + data[(n/8)-8]);
+//					printf("Found %d\t%d\t%d\n", sfn, srslte_ue_sync_get_sfidx(&ue_sync), 256*data[(n/8)-3] + data[(n/8)-2]);
+//					for (int k=0; k<(n/8); k++) {
+//						printf("%02x ",data[k]);
+//					}
+//					printf("\n");
+        			break;
+        		default:
+//        			fprintf(stderr,"\n");
+//					for (int k=0; k<(n/8); k++) {
+//						fprintf(stderr,"%02x ",data[k]);
+//					}
+//					fprintf(stderr,"\n");
+        			break;
+        		}
         	}
 #endif
         	break;

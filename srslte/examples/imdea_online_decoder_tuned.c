@@ -42,8 +42,9 @@
 
 #define ENABLE_AGC_DEFAULT
 //#define CORRECT_SAMPLE_OFFSET
-#define FINE_TUNING
-#define OWL_PATH "~/Documents/Software/OWL/OWL-master/srsLTE/build/srslte/examples"
+//#define FINE_TUNING
+#define OWL_PATH "~/Software/OWL/OWL-master/srsLTE/build/srslte/examples"
+//#define OWL_PATH "/home/bui/Documents/Software/srsLTE/newsrsLTE/build/srslte/examples"
 
 char *output_file_name = NULL;
 char *rf_args="";
@@ -117,7 +118,7 @@ void parse_args(int argc, char **argv) {
       exit(-1);
     }
   }
-  if (&rf_freq < 0 || N_id_2 == -1 || output_file_name == NULL) {
+  if (&rf_freq < 0 || output_file_name == NULL) {
     usage(argv[0]);
     exit(-1);
   }
@@ -284,6 +285,8 @@ int main(int argc, char **argv) {
 
   ue_sync.correct_cfo = !disable_cfo;
 
+  srslte_pbch_decode_reset(&ue_mib.pbch);
+
   INFO("\nEntering main loop...\n\n", 0);
   /* Main loop */
   while (!go_exit && (sf_cnt < nof_subframes || nof_subframes == -1)) {
@@ -291,7 +294,7 @@ int main(int argc, char **argv) {
     ret = srslte_ue_sync_get_buffer(&ue_sync, &sf_buffer);
     if (ret < 0) {
       fprintf(stderr, "Error calling srslte_ue_sync_work()\n");
-      go_exit=true;
+      go_exit = true;
     }
 
     /* srslte_ue_sync_get_buffer returns 1 if successfully read 1 aligned subframe */
@@ -299,7 +302,6 @@ int main(int argc, char **argv) {
       switch (state) {
         case DECODE_MIB:
           if (srslte_ue_sync_get_sfidx(&ue_sync) == 0) {
-            srslte_pbch_decode_reset(&ue_mib.pbch);
             n = srslte_ue_mib_decode(&ue_mib, sf_buffer, bch_payload, NULL, &sfn_offset);
             if (n < 0) {
               fprintf(stderr, "Error decoding UE MIB\n");

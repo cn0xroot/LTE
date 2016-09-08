@@ -332,10 +332,10 @@ int main(int argc, char **argv) {
 
     if (fstart) sf_cnt++;
     sf_guard++;
-    if (sf_guard > nof_subframes + 10000) {
-      fprintf(stderr,"watchdog exit\n");
-	  go_exit = true;
-    }
+//    if (sf_guard > nof_subframes + 10000) {
+//      fprintf(stderr,"watchdog exit\n");
+//	  go_exit = true;
+//    }
   } // Main loop
 
   srslte_ue_dl_free(&ue_dl);

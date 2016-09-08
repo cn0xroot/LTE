@@ -38,7 +38,7 @@
 void help()
 {
   mexErrMsgTxt
-    ("[cfi] = srslte_pdcch(enbConfig, rxWaveform)\n\n");
+    ("[cfi] = srslte_pcfich(enbConfig, rxWaveform)\n\n");
 }
 
 /* the gateway function */
